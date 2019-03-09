@@ -126,12 +126,12 @@ do
     BINLOG_START_FILE_NAME=""
 
     if [[ -z ${LAST_BACKUP_FILE} ]]; then
-        # If there is no backup yet, find the most recent binlog file to start copying
-        BINLOG_INDEX_FILE=`mysql --defaults-extra-file=${MYSQL_CONFIG_FILE} -e "SHOW GLOBAL VARIABLES LIKE 'log_bin_index'" | tail -1 | awk '{ print $2 }'`
-        LAST_BINLOG_FILE=`cat "$BINLOG_INDEX_FILE" | tail -1`
-        log "Most recent binlog file is ${LAST_BINLOG_FILE}"
+        # If there is no backup yet, find the first binlog file to start copying
+        BINLOG_INDEX_FILE=`mysql --defaults-extra-file=${MYSQL_CONFIG_FILE} -Bse "SHOW GLOBAL VARIABLES LIKE 'log_bin_index'" | tail -1 | awk '{ print $2 }'`
+        BINLOG_START_FILE=`head -n 1 "$BINLOG_INDEX_FILE"`
+        log "Most recent binlog file is ${BINLOG_START_FILE}"
 
-        BINLOG_START_FILE_NAME=`basename "${LAST_BINLOG_FILE}"`
+        BINLOG_START_FILE_NAME=`basename "${BINLOG_START_FILE}"`
     else
         # If mysqlbinlog crashes/exits in the middle of execution, we cant know the last position reliably.
         # Thats why starting from the beginning of the same binlog file
@@ -156,8 +156,13 @@ do
 
     log "Starting live binlog backup from ${BINLOG_START_FILE_NAME}"
 
-    mysqlbinlog --defaults-extra-file=${MYSQL_CONFIG_FILE} --raw --read-from-remote-server --stop-never \
-        --result-file=${BACKUP_PREFIX} ${BINLOG_START_FILE_NAME} >> "${LOG_DIR}/status.log" & APP_PID=$!
+    # --compress option also supported in Percona's mysqlbinlog
+
+    mysqlbinlog --defaults-extra-file=${MYSQL_CONFIG_FILE} \
+        --raw --read-from-remote-server --stop-never \
+        --verify-binlog-checksum \
+        --result-file=${BACKUP_PREFIX} \
+        ${BINLOG_START_FILE_NAME} >> "${LOG_DIR}/status.log" & APP_PID=$!
 
     log "mysqlbinlog PID=$APP_PID"
 
