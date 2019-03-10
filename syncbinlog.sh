@@ -32,7 +32,7 @@ log () {
     local msg="[$(date +'%Y-%m-%d %H:%M:%S')][${level}] $1"
     echo "${msg}" >> "${LOG_DIR}/status.log"
 
-    if [[ ${VERBOSE} ]]; then
+    if [[ ${VERBOSE} == true ]]; then
         echo "${msg}"
     fi
 }
@@ -170,6 +170,8 @@ if [[ $? -eq "1" ]]; then
     exit 1
 fi
 
+${COMPRESS} == true && log "Compression enabled"
+
 BINLOG_BASENAME=$(basename `echo ${BINLOG_BASENAME} | tail -1 | awk '{ print $2 }'`)
 log "Binlog file basename is $BINLOG_BASENAME"
 
@@ -177,7 +179,7 @@ BINLOG_INDEX_FILE=`mysql --defaults-extra-file=${MYSQL_CONFIG_FILE} -Bse "SHOW G
 log "Binlog index file is $BINLOG_BASENAME"
 
 BINLOG_LAST_FILE=`tail -1 "$BINLOG_INDEX_FILE"`
-log "Most recent binlog file is $BINLOG_BASENAME"
+log "Most recent binlog file is $BINLOG_LAST_FILE"
 
 while :
 do
@@ -192,9 +194,9 @@ do
         fi
     fi
 
-    if [[ ${RUNNING} ]]; then
+    if [[ ${RUNNING} == true ]]; then
         # check older backups to compress
-        ${COMPRESS} && compress_files
+        ${COMPRESS} == true && compress_files
 
         # check file timestamps to apply rotation
         rotate_files
