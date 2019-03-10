@@ -34,6 +34,7 @@ Usage: syncbinlog.sh [options]
 ```
 
 Example: Backup binlog files of last 10 days and compress them
+
 `./syncbinlog.sh --backup-dir=/mnt/backup --prefix="mybackup-" --compress --rotate=10`
 
 # Notes
