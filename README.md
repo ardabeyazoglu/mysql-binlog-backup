@@ -1,6 +1,6 @@
 # About
 
-This is a simple bash script that encapsulates `mysqlbinlog` utility to backup and compress binlog files. 
+This is a simple bash script that encapsulates `mysqlbinlog` utility to backup and compress binlog files. See the [blog post](https://medium.com/@ardabeyazolu/mysql-live-binlog-backup-and-restore-ae04807ada8f) .
 
 # Features
 
